@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL=http://13.233.143.170
+    networks:
+      - ecommerce-network
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/ecommerce
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-production-secret-key-change-this
+      - NODE_ENV=production
+    networks:
+      - ecommerce-network
+
+  mongodb:
+    image: mongo:5.0
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - ecommerce-network
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - ecommerce-network
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - ecommerce-network
+
+volumes:
+  mongo-data:
+  redis-data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
