@@ -28,6 +28,13 @@ He ek **real-world e-commerce application** ahe jo **microservices architecture*
 4. **Redis** - Caching layer for fast API responses
 5. **Nginx** - Reverse proxy and load balancer
 
+### Application Screenshots
+![E-commerce Dashboard](img/Screenshot%202026-01-18%20181346.png)
+*E-commerce Dashboard - Main Application Interface*
+
+![Product Management](img/Screenshot%202026-01-18%20181358.png)
+*Product Management - Add/View Products*
+
 ### Why Microservices?
 - **Scalability**: Each service can scale independently
 - **Maintainability**: Easy to update individual services
@@ -66,13 +73,49 @@ He ek **real-world e-commerce application** ahe jo **microservices architecture*
       └─────────┘ └─────────┘
 ```
 
-### Traffic Flow:
-1. **User** → Browser request to **13.233.143.170**
-2. **Nginx** → Receives request on port 80
-3. **Nginx** → Routes to Frontend (/) or Backend (/api/)
-4. **Backend** → Connects to MongoDB for data
-5. **Backend** → Uses Redis for caching
-6. **Response** → Flows back through Nginx to user
+## 📊 Container & Image Details
+
+### Total Containers: **5**
+### Total Images: **5** (3 Custom + 2 Official)
+
+| Service | Container Name | Image Type | Base Image | Port | Size |
+|---------|---------------|------------|------------|------|------|
+| Frontend | `project1_frontend_1` | Custom Build | `node:18-alpine` | 3000 | ~150MB |
+| Backend | `project1_backend_1` | Custom Build | `node:18-alpine` | 5000 | ~120MB |
+| Nginx | `project1_nginx_1` | Custom Build | `nginx:alpine` | 80 | ~25MB |
+| MongoDB | `project1_mongodb_1` | Official | `mongo:5.0` | 27017 | ~700MB |
+| Redis | `project1_redis_1` | Official | `redis:7-alpine` | 6379 | ~15MB |
+
+**Total Memory Usage: ~1GB**
+
+## 🔗 Service Connections & Communication
+
+### Connection Flow:
+```
+User Browser (Port 80)
+    ↓
+Nginx Container (nginx:alpine)
+    ├── Route: / → Frontend Container (node:18-alpine)
+    ├── Route: /api/ → Backend Container (node:18-alpine)
+    └── Route: /health → Backend Container
+
+Backend Container
+    ├── Database → MongoDB Container (mongo:5.0)
+    └── Cache → Redis Container (redis:7-alpine)
+```
+
+### Who Calls Whom:
+1. **User** → **Nginx** (Port 80)
+2. **Nginx** → **Frontend** (Port 3000) for UI requests
+3. **Nginx** → **Backend** (Port 5000) for API requests
+4. **Frontend** → **Backend** (via Nginx) for data
+5. **Backend** → **MongoDB** (Port 27017) for database operations
+6. **Backend** → **Redis** (Port 6379) for caching
+
+### Network Communication:
+- **External Network**: `ecommerce-network` (Bridge driver)
+- **Internal DNS**: Containers communicate using service names
+- **Volume Sharing**: MongoDB and Redis use persistent volumes
 
 ---
 
@@ -593,6 +636,13 @@ curl http://13.233.143.170/api/products
 5. Verify it appears in the list
 ```
 
+### Application in Action
+![Application Running](img/Screenshot%202026-01-18%20181407.png)
+*Application Successfully Running on AWS EC2*
+
+![Container Status](img/Screenshot%202026-01-18%20181514.png)
+*All 5 Containers Running Successfully*
+
 ### 4. Performance Testing
 ```bash
 # Check resource usage
@@ -747,4 +797,16 @@ curl http://13.233.143.170/health
 - ✅ All services configured
 - ✅ Sample data included
 
-**🎉 Your application is ready for deployment!**
+## 🖼️ Project Gallery
+
+### Application Interface
+| Dashboard | Product Management |
+|-----------|--------------------|
+| ![Dashboard](img/Screenshot%202026-01-18%20181346.png) | ![Products](img/Screenshot%202026-01-18%20181358.png) |
+
+### Deployment Success
+| Application Running | Container Status |
+|--------------------|-----------------|
+| ![Running App](img/Screenshot%202026-01-18%20181407.png) | ![Containers](img/Screenshot%202026-01-18%20181514.png) |
+
+**🎉 My application is ready for deployment!**
